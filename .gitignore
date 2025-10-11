@@ -1,0 +1,23 @@
+# Ignore lockfiles
+**/#*
+
+# Ignore all symlinks in all folders
+**/*~
+
+
+**/.cache
+**/eln-cache
+
+
+# Ignore archive files
+**/*_archive
+
+
+
+# remove org files from tracking
+test/*org
+quickcheck.org
+Makefile.org
+
+
+/.eldev
