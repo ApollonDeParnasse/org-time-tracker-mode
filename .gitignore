@@ -5,19 +5,11 @@
 **/*~
 
 
-**/.cache
-**/eln-cache
-
-
-# Ignore archive files
-**/*_archive
-
-
 
 # remove org files from tracking
-test/*org
-quickcheck.org
-Makefile.org
+org-time-tracker.org
+org-time-tracker-tests.org
 
+Makefile.*
 
 /.eldev

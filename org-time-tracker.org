@@ -11,6 +11,10 @@
   (require 'dash)
   (require 's)
 #+end_src
+* TODO Add as a submodule of emacs config
+:LOGBOOK:
+CLOCK: [2025-10-31 Fri 02:33]--[2025-10-31 Fri 02:40] =>  0:07
+:END:
 * TODO setup eldev
 * TODO Docstring
 :LOGBOOK:
