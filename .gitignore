@@ -13,3 +13,6 @@ org-time-tracker-tests.org
 Makefile.*
 
 /.eldev
+Eldev-local
+
+test/quickcheck-copy.el
