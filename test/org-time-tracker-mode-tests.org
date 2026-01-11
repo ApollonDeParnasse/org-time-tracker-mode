@@ -37,21 +37,21 @@
   (require 'dash)
   (require 'org-table)
   (require 's)
-  (require 'org-time-tracker)
+  (require 'org-time-tracker-mode)
+  (load "~/.config/emacs/lib/generate/generate.el")
 
 #+end_src
-* Notes
-#+begin_src elisp 
-     (let ((fifo (make-ring 5)))
-       (mapc (lambda (obj) (ring-insert fifo obj))
-             '(0 one "two"))
-       (list (ring-remove fifo) t
-             (ring-remove fifo) t
-             (ring-remove fifo)))
-          ⇒ (0 t one t "two")
-
-
-#+end_src
+* DONE reintegrate generate.el
+CLOSED: [2026-01-07 Wed 19:09]
+:LOGBOOK:
+CLOCK: [2026-01-07 Wed 19:07]--[2026-01-07 Wed 19:09] =>  0:02
+CLOCK: [2026-01-06 Tue 20:32]--[2026-01-06 Tue 20:38] =>  0:06
+CLOCK: [2026-01-06 Tue 20:26]--[2026-01-06 Tue 20:30] =>  0:04
+CLOCK: [2026-01-06 Tue 20:02]--[2026-01-06 Tue 20:13] =>  0:11
+CLOCK: [2026-01-06 Tue 19:17]--[2026-01-06 Tue 19:19] =>  0:02
+CLOCK: [2026-01-06 Tue 18:55]--[2026-01-06 Tue 18:55] =>  0:00
+CLOCK: [2026-01-06 Tue 18:38]--[2026-01-06 Tue 18:46] =>  0:08
+:END:
 * Constants
 #+begin_src elisp :tangle yes
   (defconst MINUTES-IN-A-DAY
@@ -67,9 +67,9 @@
     (list 3 5 10 15 20))
 
 
-  (defalias 'get-random-test-step (-partial #'seq-random-elt TEST-STEPS))
-  (defalias 'get-random-day-number (-partial #'seq-random-elt TEST-STEPS))
-  (defalias 'get-random-year (-partial #'random-nat-number-in-range (list 2000 3000)))
+  (defalias 'ott--get-random-test-step (-partial #'seq-random-elt TEST-STEPS))
+  (defalias 'ott--get-random-day-number (-partial #'seq-random-elt TEST-STEPS))
+  (defalias 'ott--get-random-year (-partial #'generate-random-nat-number-in-range (list 2000 3000)))
 
 #+end_src
 
@@ -78,26 +78,26 @@
 
 * table creation
 ** columns
-*** DONE time-unfolder
+*** DONE ott--time-unfolder
 CLOSED: [2025-11-02 Sun 08:45]
 :LOGBOOK:
 CLOCK: [2025-11-02 Sun 03:44]--[2025-11-02 Sun 03:53] =>  0:09
 :END:
 #+begin_src elisp :tangle yes
-  (ert-deftest-n-times time-unfolder 100
-    (-let* ((test-step (get-random-test-step))
+  (generate-ert-deftest-n-times ott--time-unfolder ()
+    (-let* ((test-step (ott--get-random-test-step))
   	  (test-max-index (/ MINUTES-IN-A-DAY test-step))
   	  (test-periods (-iota test-max-index 0 test-step))
-  	  (test-index (random-nat-number-in-range-from-zero test-max-index))
+  	  (test-index (generate--random-nat-number-in-range-from-zero test-max-index))
   	  ((actual-result actual-hour-and-minute)
-  	   (funcall (-compose (-juxt #'identity (-partial #'s-split ":")) #'car #'time-unfolder) test-step test-index))
-  	  ((actual-hour actual-minute) (seq-map-string-to-number actual-hour-and-minute)))
+  	   (funcall (-compose (-juxt #'identity (-partial #'s-split ":")) #'car #'ott--time-unfolder) test-step test-index))
+  	  ((actual-hour actual-minute) (generate--seq-map-string-to-number actual-hour-and-minute)))
       (should (length= actual-result 5))
       (should (eql (mod actual-hour HOURS-IN-A-DAY) actual-hour))
       (should (zerop (mod actual-minute test-step)))))
 
 #+end_src
-*** DONE create-list-of-time-periods
+*** DONE ott--create-list-of-time-periods
 CLOSED: [2025-11-04 Tue 07:08]
 :PROPERTIES:
 :ID:       039a466e-446b-4718-838b-1f4c2097788c
@@ -109,16 +109,16 @@ CLOCK: [2025-11-02 Sun 20:40]--[2025-11-02 Sun 20:41] =>  0:01
 CLOCK: [2025-11-02 Sun 09:07]--[2025-11-02 Sun 09:13] =>  0:06
 :END:
 #+begin_src elisp :tangle yes
-  (ert-deftest-n-times create-list-of-time-periods 100
-    (-let* ((test-step (get-random-test-step))
-  	 ((expected-length expected-max-time-index) (funcall (-compose (-juxt #'identity #'2-) #'get-total-periods) test-step))
-  	 ((actual-result actual-first actual-last) (funcall (-compose (-juxt #'identity #'seq-first (-partial #'nth expected-max-time-index)) #'create-list-of-time-periods) test-step)))
+  (generate-ert-deftest-n-times ott--create-list-of-time-periods ()
+    (-let* ((test-step (ott--get-random-test-step))
+  	 ((expected-length expected-max-time-index) (funcall (-compose (-juxt #'identity #'ott--2-) #'ott--get-total-periods) test-step))
+  	 ((actual-result actual-first actual-last) (funcall (-compose (-juxt #'identity #'seq-first (-partial #'nth expected-max-time-index)) #'ott--create-list-of-time-periods) test-step)))
       (should (eql (seq-length actual-result) expected-length))
       (should (string< actual-first actual-last))))
 
 #+end_src
 
-*** DONE create-list-of-time-headers
+*** DONE ott--create-list-of-time-headers
 CLOSED: [2025-11-10 Mon 06:53]
 :LOGBOOK:
 CLOCK: [2025-11-04 Tue 10:11]--[2025-11-04 Tue 10:14] =>  0:03
@@ -126,17 +126,17 @@ CLOCK: [2025-11-04 Tue 07:09]--[2025-11-04 Tue 07:09] =>  0:00
 CLOCK: [2025-11-04 Tue 04:21]--[2025-11-04 Tue 04:31] =>  0:10
 :END:
 #+begin_src elisp :tangle yes
-  (ert-deftest-n-times create-list-of-time-headers 100
-    (-let* ((test-step (get-random-test-step))
-  	 (expected-length (thread-last test-step (get-total-periods) (1-)))
-  	 ((actual-result (actual-random-start-time actual-random-end-time)) (funcall (-compose (-juxt #'identity (-compose #'split-on-dashes #'seq-take-one-random-value-from-seq)) #'create-list-of-time-headers) test-step)))
+  (generate-ert-deftest-n-times ott--create-list-of-time-headers ()
+    (-let* ((test-step (ott--get-random-test-step))
+  	 (expected-length (thread-last test-step (ott--get-total-periods) (1-)))
+  	 ((actual-result (actual-random-start-time actual-random-end-time)) (funcall (-compose (-juxt #'identity (-compose #'ott--split-on-dashes #'generate-seq-take-random-value-from-seq)) #'ott--create-list-of-time-headers) test-step)))
       (should (eql (seq-length actual-result) expected-length))
       (should (not (string= actual-random-start-time actual-random-end-time)))))
 
 #+end_src
 
 ** rows
-*** DONE date-unfolder
+*** DONE ott--date-unfolder
 CLOSED: [2025-11-04 Tue 01:50]
 :LOGBOOK:
 CLOCK: [2025-11-18 Tue 03:10]--[2025-11-18 Tue 03:13] =>  0:03
@@ -147,17 +147,17 @@ CLOCK: [2025-11-03 Mon 01:52]--[2025-11-03 Mon 02:06] =>  0:14
 CLOCK: [2025-11-02 Sun 20:43]--[2025-11-02 Sun 20:51] =>  0:08
 :END:
 #+begin_src elisp :tangle yes
-  (ert-deftest-n-times date-unfolder 100
-    (-let* ((test-day-number (get-random-day-number))
-  	  (test-year (get-random-year))
+  (generate-ert-deftest-n-times ott--date-unfolder ()
+    (-let* ((test-day-number (ott--get-random-day-number))
+  	  (test-year (ott--get-random-year))
   	  ((actual-date (actual-year actual-month actual-day))
-  	   (funcall (-compose (-juxt #'identity #'split-on-dashes) #'car #'date-unfolder) test-year test-day-number)))
+  	   (funcall (-compose (-juxt #'identity #'ott--split-on-dashes) #'car #'ott--date-unfolder) test-year test-day-number)))
       (should (length= actual-date 16))
       (should (equal actual-year (format "<%s" test-year)))
-      (should (between-one-and-? 12 (string-to-number actual-month)))
-      (should (between-one-and-? 31 (string-to-number actual-day)))))
+      (should (generate--between-1-and-p 12 (string-to-number actual-month)))
+      (should (generate--between-1-and-p 31 (string-to-number actual-day)))))
 #+end_src
-*** DONE create-list-of-dates-for-year
+*** DONE ott--create-list-of-dates-for-year
 CLOSED: [2025-11-04 Tue 04:19]
 :LOGBOOK:
 CLOCK: [2025-11-14 Fri 14:37]--[2025-11-14 Fri 14:39] =>  0:02
@@ -166,10 +166,10 @@ CLOCK: [2025-11-04 Tue 01:42]--[2025-11-04 Tue 01:45] =>  0:03
 CLOCK: [2025-11-03 Mon 02:06]--[2025-11-03 Mon 02:08] =>  0:02
 :END:
 #+begin_src elisp :tangle yes
-  (ert-deftest-n-times create-list-of-dates-for-year 100
-    (-let* ((test-year (get-random-year))
-  	 (expected-length (days-in-year test-year))
-  	 ((actual-result actual-first actual-last) (funcall (-compose (-juxt #'identity #'seq-first #'seq-last) #'create-list-of-dates-for-year) test-year))
+  (generate-ert-deftest-n-times ott--create-list-of-dates-for-year ()
+    (-let* ((test-year (ott--get-random-year))
+  	 (expected-length (ott--days-in-year test-year))
+  	 ((actual-result actual-first actual-last) (funcall (-compose (-juxt #'identity #'-first-item #'-last-item) #'ott--create-list-of-dates-for-year) test-year))
   	 (expected-string-start (format "<%s" (number-to-string test-year))))
       (should (eql (seq-length actual-result) expected-length))
       (should (string< actual-first actual-last))
@@ -177,7 +177,7 @@ CLOCK: [2025-11-03 Mon 02:06]--[2025-11-03 Mon 02:08] =>  0:02
       (should (s-starts-with-p expected-string-start actual-last))))
 
 #+end_src
-** DONE create-time-table-for-year
+** DONE ott-create-time-table-for-year
 CLOSED: [2025-11-10 Mon 06:54]
 :LOGBOOK:
 CLOCK: [2025-11-04 Tue 14:20]--[2025-11-04 Tue 14:22] =>  0:02
@@ -185,17 +185,17 @@ CLOCK: [2025-11-04 Tue 13:00]--[2025-11-04 Tue 13:15] =>  0:15
 CLOCK: [2025-11-04 Tue 10:15]--[2025-11-04 Tue 10:24] =>  0:09
 :END:
 #+begin_src elisp :tangle yes
-  (ert-deftest-n-times create-time-table-for-year 100
-    (-let* ((test-year (get-random-year))
-  	 (expected-table-length (thread-last test-year (days-in-year) (1+)))  	 
-  	 (test-step (get-random-test-step))
-  	 (expected-row-length (get-total-periods test-step))
-  	 ((actual-time-table actual-random-row) (funcall (-compose (-juxt #'identity #'seq-take-one-random-value-from-seq) #'create-time-table-for-year) test-step test-year)))      
+  (generate-ert-deftest-n-times ott-create-time-table-for-year ()
+    (-let* ((test-year (ott--get-random-year))
+  	 (expected-table-length (thread-last test-year (ott--days-in-year) (1+)))  	 
+  	 (test-step (ott--get-random-test-step))
+  	 (expected-row-length (ott--get-total-periods test-step))
+  	 ((actual-time-table actual-random-row) (funcall (-compose (-juxt #'identity #'generate-seq-take-random-value-from-seq) #'ott--create-time-table-for-year) test-step test-year)))      
       (should (length= actual-time-table expected-table-length))
       (should (length= actual-random-row expected-row-length))))
 #+end_src
 
-** DONE create-time-table-file-for-year
+** DONE ott-create-time-table-file-for-year
 CLOSED: [2025-11-04 Tue 14:48]
 :LOGBOOK:
 CLOCK: [2025-11-04 Tue 14:38]--[2025-11-04 Tue 14:48] =>  0:10
@@ -203,16 +203,17 @@ CLOCK: [2025-11-04 Tue 10:24]--[2025-11-04 Tue 10:30] =>  0:06
 CLOCK: [2025-11-04 Tue 10:24]--[2025-11-04 Tue 10:24] =>  0:00
 :END:
 #+begin_src elisp :tangle yes
-  (ert-deftest-n-times create-time-table-file-for-year 0
-    (let* ((test-year (get-random-year))
+  (generate-ert-deftest-n-times ott-create-time-table-file-for-year ()
+    :num-runs 0
+    (let* ((test-year (ott--get-random-year))
   	  (test-step 5)
   	  (test-file-name (file-name-with-extension "earl" ".orgtbl"))
   	  (test-file (file-name-concat "/tmp" test-file-name)))
-      (create-time-table-file-for-year test-file test-step test-year)
+      (ott-create-time-table-file-for-year test-file test-step test-year)
       (with-temp-buffer
         (insert-file-contents test-file)
         (should (org-at-table-p)))))
-  
+
 #+end_src
 
 * cycling options
@@ -227,11 +228,11 @@ CLOCK: [2025-11-09 Sun 14:11]--[2025-11-09 Sun 14:21] =>  0:10
 CLOCK: [2025-11-09 Sun 13:17]--[2025-11-09 Sun 13:23] =>  0:06
 :END:
 #+begin_src elisp :tangle yes
-  (ert-deftest-n-times ott-incf-mod 0
-    (-let* (((test-place test-delta) (generate-test-list-of-nat-numbers :min-length 2 :max-length 2))
-  	 (test-max (random-nat-number-in-range (list test-delta (+ test-place test-delta)))))
-      (ott-incf-mod test-place test-max test-delta)
-      (should (funcall (between-zero-and-? test-max) test-place))))
+  (generate-ert-deftest-n-times ott--incf-mod ()
+    (-let* (((test-place test-delta) (generate-list-of-nat-numbers :exact-length 2))
+  	 (test-max (generate-random-nat-number-in-range (list test-delta (+ test-place test-delta)))))
+      (ott--incf-mod test-place test-max test-delta)
+      (should (funcall (generate--between-0-and-p test-max) test-place))))
 
 #+end_src
   
@@ -244,13 +245,13 @@ CLOCK: [2025-11-19 Wed 08:47]--[2025-11-19 Wed 08:48] =>  0:01
 CLOCK: [2025-11-18 Tue 13:40]--[2025-11-18 Tue 13:46] =>  0:06
 :END:
 #+begin_src elisp :tangle yes
-  (ert-deftest-n-times ott-nth-mod 0
-    (-let* ((test-list (generate-test-data))
-  	  (test-nth (random-nat-number-in-range (list 0 (seq-length test-list))))
-  	  (actual-val (ott-nth-mod test-nth test-list)))
+  (generate-ert-deftest-n-times ott--nth-mod ()
+    (-let* ((test-list (generate-data))
+  	  (test-nth (generate-random-nat-number-in-range (list 0 (seq-length test-list))))
+  	  (actual-val (ott--nth-mod test-nth test-list)))
       (should (member actual-val test-list))))
 #+end_src
-** DONE ott-create-cell-options-closure
+** DONE ott--create-cell-options-closure
 CLOSED: [2025-11-19 Wed 18:15]
 :LOGBOOK:
 CLOCK: [2025-11-27 Thu 03:07]--[2025-11-27 Thu 03:07] =>  0:00
@@ -270,17 +271,19 @@ CLOCK: [2025-11-09 Sun 09:56]--[2025-11-09 Sun 10:09] =>  0:13
 :END:
 #+begin_src elisp :tangle yes
 
-  (ert-deftest-n-times ott-create-cell-options-closure 0
-    (-let* ((test-options (generate-test-list-of-strings))
-  	 (test-closure (ott-create-cell-options-closure test-options))
-  	 (expected-closure-list (cons "" test-options))
-  	 (test-n (random-nat-number-in-range (list 0 (1- (length expected-closure-list)))))
-  	 ((test-current-val expected-val) (funcall (-juxt #'nth #'ott-nth-mod) test-n expected-closure-list)))
+  (generate-ert-deftest-n-times ott--create-cell-options-closure-forward ()
+    (-let* ((test-options (generate-random-list-of-words))
+  	  (test-func (lambda (x max) (mod (1+ x) max)))
+  	  (test-closure (ott--create-cell-options-closure test-func test-options))
+  	  (expected-closure-list (cons "" test-options))
+  	  (test-n (generate-random-nat-number-in-range (list 0 (1- (length expected-closure-list)))))
+  	  (test-current-val (nth test-n test-options))
+  	  (expected-val (ott--nth-mod test-n test-options)))
       (should (equal (funcall test-closure test-current-val) expected-val))))
 
 #+end_src
 
-** DONE ott-create-toggle-cell-value
+** DONE ott--create-toggle-cell-value
 CLOSED: [2025-11-22 Sat 16:19]
 :LOGBOOK:
 CLOCK: [2025-11-27 Thu 02:59]--[2025-11-27 Thu 03:00] =>  0:01
@@ -292,153 +295,34 @@ CLOCK: [2025-11-18 Tue 08:35]--[2025-11-18 Tue 08:38] =>  0:03
 CLOCK: [2025-11-11 Tue 18:18]--[2025-11-11 Tue 18:19] =>  0:01
 :END:
 #+begin_src elisp :tangle yes
-  (ert-deftest-n-times ott-create-toggle-cell-value 0
-    (-let* (((test-list &as test-row-count test-column-count) (-times-no-args 2 #'random-nat-number-in-range-10))
-  	  ((test-row-number test-column-number) (seq-map (lambda (val) (random-nat-number-in-range (list 1 val))) test-list))
-  	  (test-options (generate-test-list-of-strings))
-  	  (test-current-value (seq-take-one-random-value-from-seq test-options))
-  	  (test-closure (ott-create-cell-options-closure test-options))
-  	  (test-ott-toggle-cell-value (-partial #'ott-create-cell-value-toggler test-closure)))
+  (generate-ert-deftest-n-times ott--create-cell-value-toggler ()
+    (-let* (((test-list &as test-row-count test-column-count) (generate--times-no-args 2 #'generate--random-nat-number-in-range-10))
+  	  ((test-row-number test-column-number) (seq-map (lambda (val) (generate-random-nat-number-in-range (list 1 val))) test-list))
+  	  (test-options (generate-random-list-of-words))
+  	  (test-current-value (generate-seq-take-random-value-from-seq test-options))
+  	  (test-func (list (lambda (x max) (mod (1+ x) max))))
+  	  (test-closure (ott--create-cell-options-closure test-func test-options))
+  	  (test-ott--toggle-cell-value (-partial #'ott--create-cell-value-toggler test-closure)))
       (should
-       (ott-with-buffer-with-test-table (list (cl-constantly test-current-value) test-row-count test-column-count)
+       (generate-with-buffer-with-org-table-without-hlines (list (cl-constantly test-current-value) test-row-count test-column-count)
          (org-table-goto-line test-row-number)
          (org-table-goto-column test-column-number)
-         (funcall test-ott-toggle-cell-value)
+         (funcall test-ott--toggle-cell-value)
          (member (org-table-get test-row-number test-column-number) test-options)))))
 #+end_src
  
 * org-time-tracker-mode
-** org-table-autofill
-*** with random string
-:LOGBOOK:
-CLOCK: [2025-11-22 Sat 16:19]--[2025-11-22 Sat 16:22] =>  0:03
-CLOCK: [2025-11-20 Thu 17:47]--[2025-11-20 Thu 18:10] =>  0:23
-CLOCK: [2025-11-20 Thu 15:35]--[2025-11-20 Thu 15:39] =>  0:04
-:END:
-**** right
-:PROPERTIES:
-:ID:       24c72cc5-a91e-4143-a909-d8344cee0eeb
-:END:
-:LOGBOOK:
-CLOCK: [2025-11-27 Thu 03:00]--[2025-11-27 Thu 03:07] =>  0:07
-CLOCK: [2025-11-27 Thu 00:33]--[2025-11-27 Thu 00:35] =>  0:02
-CLOCK: [2025-11-26 Wed 19:24]--[2025-11-26 Wed 19:31] =>  0:07
-CLOCK: [2025-11-26 Wed 16:54]--[2025-11-26 Wed 17:12] =>  0:18
-CLOCK: [2025-11-22 Sat 18:34]--[2025-11-22 Sat 18:56] =>  0:22
-CLOCK: [2025-11-22 Sat 16:22]--[2025-11-22 Sat 16:31] =>  0:09
-:END:
-#+begin_src elisp :tangle yes
-  (ert-deftest-n-times org-table-autofill-string-right 0
-    (-let* ((test-row-count (random-nat-number-in-range (list 2 10)))
-  	  (test-row-number (random-nat-number-in-range (list 1 test-row-count)))
-  	  (test-beg-column-number (random-nat-number-in-range (list 1 10)))
-  	  (test-end-column-number (random-nat-number-in-range (list (1+ test-beg-column-number) (+ 10 test-beg-column-number))))
-  	  (test-column-count (random-nat-number-in-range (list (1+ test-end-column-number) (+ 10 test-end-column-number))))
-  	  (test-cell-value "10"))
-      (should
-       (equal (ott-with-buffer-with-test-table (list (cl-constantly "1") test-row-count test-column-count)  				     
-  				   (org-table-goto-line-column test-row-number test-beg-column-number)
-  				   (org-table-get-field nil test-cell-value)
-  				   (setq test-beg (point))
-  				   (org-table-goto-column test-end-column-number)
-  				   (setq test-end (point))
-  				   (org-table-autofill test-beg test-end)
-  				   (org-table-align)
-  				   (org-no-properties-and-trim (org-table-get-field (random-nat-number-in-range (list test-beg-column-number test-end-column-number)))))
-  	    test-cell-value)))) 
-#+end_src
-**** Left
-:LOGBOOK:
-CLOCK: [2025-11-27 Thu 03:07]--[2025-11-27 Thu 03:09] =>  0:02
-CLOCK: [2025-11-27 Thu 02:58]--[2025-11-27 Thu 02:59] =>  0:01
-CLOCK: [2025-11-27 Thu 00:35]--[2025-11-27 Thu 00:42] =>  0:07
-CLOCK: [2025-11-26 Wed 19:31]--[2025-11-26 Wed 19:34] =>  0:03
-:END:
-#+begin_src elisp :tangle yes
-  (ert-deftest-n-times org-table-autofill-string-left 0
-    (-let* ((test-row-count (random-nat-number-in-range (list 2 10)))
-  	  (test-row-number (random-nat-number-in-range (list 1 test-row-count)))
-  	  (test-end-column-number (random-nat-number-in-range (list 1 10)))
-  	  (test-beg-column-number (random-nat-number-in-range (list (1+ test-end-column-number) (+ 10 test-end-column-number))))
-  	  (test-column-count (random-nat-number-in-range (list (1+ test-beg-column-number) (+ 10 test-beg-column-number))))
-  	  (test-cell-value (generate-test-string)))
-      (should
-       (equal (ott-with-buffer-with-test-table (list (cl-constantly "1") test-row-count test-column-count)  				     
-  				   (org-table-goto-line-column test-row-number test-beg-column-number)
-  				   (org-table-get-field nil test-cell-value)
-  				   (org-table-align)
-  				   (setq test-beg (point))
-  				   (org-table-goto-column test-end-column-number)
-  				   (setq test-end (point))
-  				   (org-table-autofill test-beg test-end)
-  				   (org-table-align)
-  				   (org-no-properties-and-trim (org-table-get-field (random-nat-number-in-range (list test-end-column-number (1- test-beg-column-number))))))
-  	    test-cell-value)))) 
-#+end_src
-**** Down + Right
-:PROPERTIES:
-:ID:       f0781b9f-0007-4f93-a9ba-acb7d402ea80
-:END:
-:LOGBOOK:
-CLOCK: [2025-11-28 Fri 00:43]--[2025-11-28 Fri 00:47] =>  0:04
-CLOCK: [2025-11-27 Thu 03:09]--[2025-11-27 Thu 03:20] =>  0:11
-CLOCK: [2025-11-26 Wed 21:43]--[2025-11-26 Wed 21:51] =>  0:08
-:END:
-#+begin_src elisp :tangle yes
-  (ert-deftest-n-times org-table-autofill-string-down-right 0
-    (-let* ((test-beg-column-number (random-nat-number-in-range (list 1 10)))
-  	  (test-end-column-number (random-nat-number-in-range (list (1+ test-beg-column-number) (+ 10 test-beg-column-number))))
-  	  (test-column-count (random-nat-number-in-range (list (1+ test-end-column-number) (+ 10 test-end-column-number))))  	  
-  	  (test-beg-row-number (random-nat-number-in-range (list 1 10)))
-  	  (test-end-row-number (random-nat-number-in-range (list (1+ test-beg-row-number) (+ 10 test-beg-row-number))))
-  	  (test-row-count (random-nat-number-in-range (list (1+ test-end-row-number) (+ 10 test-end-row-number))))
-  	  (test-cell-value (generate-test-string)))
-      (should
-       (equal (ott-with-buffer-with-test-table (list (cl-constantly "1") test-row-count test-column-count)  				     
-  				   (org-table-goto-line-column test-beg-row-number test-beg-column-number)
-  				   (org-table-get-field nil test-cell-value)
-  				   (setq test-beg (point))
-  				   (org-table-goto-line-column test-end-row-number test-end-column-number)
-  				   (setq test-end (point))
-  				   (org-table-autofill test-beg test-end)
-  				   (org-table-align)
-  				   (org-no-properties-and-trim (org-table-get (random-nat-number-in-range (list (1+ test-beg-row-number) test-end-row-number))
-  							       (random-nat-number-in-range (list (1+ test-beg-column-number) test-end-column-number)))))
-  	    test-cell-value)))) 
-#+end_src
-**** Up + Left
-:LOGBOOK:
-CLOCK: [2025-11-28 Fri 16:15]--[2025-11-28 Fri 16:28] =>  0:13
-:END:
-#+begin_src elisp :tangle yes
-  (ert-deftest-n-times org-table-autofill-string-up-left 0
-    (-let* ((test-end-row-number (random-nat-number-in-range (list 1 10)))
-  	  (test-beg-row-number (random-nat-number-in-range (list (1+ test-end-row-number) (+ 10 test-end-row-number))))
-  	  (test-row-count (random-nat-number-in-range (list (1+ test-beg-row-number) (+ 10 test-beg-row-number))))  	  
-  	  (test-end-column-number (random-nat-number-in-range (list 1 10)))
-  	  (test-beg-column-number (random-nat-number-in-range (list (1+ test-end-column-number) (+ 10 test-end-column-number))))
-  	  (test-column-count (random-nat-number-in-range (list (1+ test-beg-column-number) (+ 10 test-beg-column-number))))
-  	  (test-cell-value (generate-test-string)))
-      (should
-       (equal (ott-with-buffer-with-test-table (list (cl-constantly "1") test-row-count test-column-count)  				     
-  				   (org-table-goto-line-column test-beg-row-number test-beg-column-number)
-  				   (org-table-get-field nil test-cell-value)
-  				   (org-table-align)
-  				   (setq test-beg (point))
-  				   (org-table-goto-line-column test-end-row-number test-end-column-number)
-  				   (setq test-end (point))
-  				   (org-table-autofill test-beg test-end)
-  				   (org-table-align)
-  				   (org-no-properties-and-trim (org-table-get (random-nat-number-in-range (list test-end-row-number (1- test-beg-row-number)))
-  							       (random-nat-number-in-range (list test-end-column-number (1- test-beg-column-number))))))
-  	    test-cell-value)))) 
-#+end_src
-
-* testing
-
 * End
-#+begin_src elisp :tangle yes
-  (provide 'org-time-tracker-tests)
+#+begin_src elisp :tangle no
   ;;; org-time-tracker-tests.el ends here
 #+END_SRC
 
+* local variables
+:PROPERTIES:
+:ID:       480da3a1-2f1b-4f35-b990-a0723039e715
+:END:
+#+begin_src elisp :tangle yes
+;; Local Variables:
+;; read-symbol-shorthands: (("ott-" . "org-time-tracker-mode-"))
+;; End:
+#+end_src

@@ -58,7 +58,7 @@
 |------------------+------+------+--------+------|
 | <2026-01-01 Thu> | PAID |      |        |      |
 |------------------+------+------+--------+------|
-|                  |      |      |   10.0 |      |
+|               10 |      |      |   10.0 |      |
 |------------------+------+------+--------+------|
 |                  |      |      |  180.0 |      |
 |------------------+------+------+--------+------|
@@ -78,10 +78,24 @@
 #("|" 0 1 (face org-table fontified t))
 #+end_src
 
-
+** TODO mass renaming
+:LOGBOOK:
+CLOCK: [2026-01-06 Tue 20:38]--[2026-01-06 Tue 20:42] =>  0:04
+CLOCK: [2026-01-06 Tue 19:19]--[2026-01-06 Tue 19:27] =>  0:08
+CLOCK: [2026-01-06 Tue 18:55]--[2026-01-06 Tue 18:58] =>  0:03
+CLOCK: [2026-01-01 Thu 00:55]--[2026-01-01 Thu 01:23] =>  0:28
+:END:
 * Notes 
 #+begin_src elisp
 
+  ‘evaporate’
+     If this property is non-‘nil’, the overlay is deleted automatically
+     if it becomes empty (i.e., if its length becomes zero).  If you
+     give an empty overlay (*note empty overlay: Managing Overlays.) a
+     non-‘nil’ ‘evaporate’ property, that deletes it immediately.  Note
+     that, unless an overlay has this property, it will not be deleted
+     when the text between its starting and ending positions is deleted
+     from the buffer.
   (defcustom so-long-variable-overrides
       '((bidi-inhibit-bpa . t)
         (bidi-paragraph-direction . left-to-right)
@@ -130,6 +144,7 @@
 :ID:       61579947-ca98-4ef2-be4c-08f60382aa9e
 :END:
 :LOGBOOK:
+CLOCK: [2026-01-01 Thu 09:54]--[2026-01-01 Thu 09:55] =>  0:01
 CLOCK: [2025-12-19 Fri 04:23]--[2025-12-19 Fri 04:29] =>  0:06
 CLOCK: [2025-11-10 Mon 14:39]--[2025-11-10 Mon 14:41] =>  0:02
 CLOCK: [2025-11-10 Mon 12:32]--[2025-11-10 Mon 12:34] =>  0:02
@@ -142,68 +157,52 @@ CLOCK: [2025-11-09 Sun 10:09]--[2025-11-09 Sun 10:10] =>  0:05
     :tag "org-time-tracker-mode"
     :group 'org)
 
-  (defcustom cell-options-alist '(("le sommeil" . (:background "grey"))
-  				("les jeux vidéos" . (:background "yellow"))
-  				("le temps d'arrêt" . (:background "orange"))
-  				("le temps en famille" . (:background "pink"))
-  				("la socialisation" . (:background "green"))
-  				("la musculation" . (:background "burgundy")) 
-  				("le travail" . (:background "white"))
-  				("la programmation" . (:background "blue"))  				
-  				("l'écriture" . (:background "silver"))
-  				("les rendez-vous" . (:background "red"))
-  				("le temp perdu" . (:background "pale yellow"))
-  				("les tâches" . (:background "dark blue")))
+  (defcustom ott-cell-options-alist '(("le sommeil" . (:background "DimGray"))
+  				("la programmation" . (:background "LemonChiffon"))
+  				("la musculation" . (:background "RosyBrown"))
+  				("le travail" . (:background "DarkOliveGreen"))
+  				("l'écriture" . (:background "MediumOrchid"))
+  				("la lecture" . (:background "DeepPink"))
+  				("le temps d'arrêt" . (:background "LightCoral"))
+  				("la méditation" . (:background "PaleTurquoise"))
+  				("le temp perdu" . (:background "Cyan"))  				
+  				("le temps en famille" . (:background "LightSteelBlue"))
+  				("les jeux vidéos" . (:background "LightGoldenrodYellow"))
+  				("la socialisation" . (:background "CadetBlue1"))
+  				("les tâches" . (:background "MediumPurple1"))
+  				("les rendex-vous" . (:background "DeepSkyBlue")))
     "Category-Color pairs"
     :group 'org-time-tracker-mode
     :type 'plist)
 
-  (defvar cell-options-keys
-    (map-keys cell-options-alist))
+  (defvar ott-cell-options-keys
+    (map-apply (lambda (x  y) (propertize x 'face y)) ott-cell-options-alist))
 
 
 #+end_src
 
 #+RESULTS:
-: cell-options-keys
+: org-time-tracker-mode-cell-options-keys
 
 * aliases
 :PROPERTIES:
 :ID:       e1ece2d1-675a-4ede-8ed5-08f5e339cfd3
 :END:
 #+begin_src elisp :tangle yes
-  (defalias 'pad-zeros (-partial #'s-pad-left 2 "0"))
-  (defalias 'format-pad (-compose #'pad-zeros (lambda (x) (format "%s" x))))
-  (defalias 'seq-map-string-to-number (-partial #'seq-map #'string-to-number))
-  (defalias 'split-on-dashes (-partial #'s-split "-"))
-  (defalias 'surround-text-with-brackets (lambda (x) (format "<%s>" x)))
-  (defalias '-interpose-hlines (-partial #'-interpose 'hline))
-  (defalias 'basic-tbl (-rpartial #'orgtbl-to-orgtbl '()))
+  (defalias 'ott--pad-zeros (-partial #'s-pad-left 2 "0"))
+  (defalias 'ott--format-pad (-compose #'ott--pad-zeros (lambda (x) (format "%s" x))))
+  (defalias 'ott--seq-map-string-to-number (-partial #'seq-map #'string-to-number))
+  (defalias 'ott--split-on-dashes (-partial #'s-split "-"))
+  (defalias 'ott--surround-text-with-brackets (lambda (x) (format "<%s>" x)))
+  (defalias 'ott--interpose-hlines (-partial #'-interpose 'hline))
+  (defalias 'ott--basic-tbl (-rpartial #'orgtbl-to-orgtbl '()))
 #+end_src
 
 #+RESULTS:
 : -interpose-hlines
 
-* testing
-** alignment data generators
-** org-test-table-alignment-asserter
-#+begin_src elisp :tangle yes
-  (defun org-test-table-alignment-asserter (function expected test-value)
-    (should
-     (equal expected
-      (org-test-with-temp-text test-value
-  			     (funcall function)
-  			     (buffer-string)))))
 
-#+end_src
 
-** org-table--generate-test-max-cell-body-widths
-** org-table--generate-test-row-cell-body-widths
-** org-table--generate-test-table-column-alignments
-** org-table--generate-test-table-column-alignments
-** org-table--generate-test-cell-value-widths
-** org-table--generate-test-cell-values
-** org-table--generate-test-cell-bodies
 * table creation
 ** columns
 CLOSED: [2025-11-02 Sun 20:43]
@@ -213,17 +212,22 @@ CLOSED: [2025-11-02 Sun 20:43]
 :END:
 #+begin_src elisp :tangle yes
 
-  (defalias '2- (-rpartial #'- 2))
-  (defalias 'get-periods-per-hour (-partial #'/ 60))
-  (defalias 'get-total-periods (-compose #'1+ (-partial #'* 24) #'get-periods-per-hour))  
-  (defalias 'convert-index-into-hour-string (lambda (step index) (funcall (-compose (-rpartial #'mod 24) (-partial #'floor index) #'get-periods-per-hour) step)))
-  (defalias 'convert-index-into-minute-string (lambda (step index) (* (mod index (get-periods-per-hour step)) step)))
-  (defalias 'convert-index-into-hour-and-minute-strings (-compose (-partial #'seq-map #'format-pad) (-juxt #'convert-index-into-hour-string #'convert-index-into-minute-string)))
-  (defalias '-partition-in-steps-two (-partial #'-partition-in-steps 2 1))
-  (defalias 'join-on-dashes (-rpartial #'string-join "-"))
-  (defalias 'seq-map-join-on-dashes (-partial #'seq-map #'join-on-dashes))
+  (defalias 'ott--2- (-rpartial #'- 2))
+  (defalias 'ott--get-periods-per-hour (-partial #'/ 60))
+  (defalias 'ott--get-total-periods (-compose #'1+ (-partial #'* 24) #'ott--get-periods-per-hour))  
+  (defalias 'ott--convert-index-into-hour-string (lambda (step index) (funcall (-compose (-rpartial #'mod 24) (-partial #'floor index) #'ott--get-periods-per-hour) step)))
+  (defalias 'ott--convert-index-into-minute-string (lambda (step index) (* (mod index (ott--get-periods-per-hour step)) step)))
+  (defalias 'ott--convert-index-into-hour-and-minute-strings (-compose (-partial #'seq-map #'ott--format-pad) (-juxt #'ott--convert-index-into-hour-string #'ott--convert-index-into-minute-string)))
+  (defalias 'ott--partition-in-steps-two (-partial #'-partition-in-steps 2 1))
+  (defalias 'ott--join-on-dashes (-rpartial #'string-join "-"))
+  (defalias 'ott--seq-map-join-on-dashes (-partial #'seq-map #'ott--join-on-dashes))
+
 
 #+end_src
+
+#+RESULTS:
+| 0 | 4 | 8 | 12 | 16 | 20 | 24 | 28 | 32 | 36 |
+
 *** DONE time-unfolder
 CLOSED: [2025-11-04 Tue 07:08]
 :PROPERTIES:
@@ -236,13 +240,17 @@ CLOCK: [2025-11-02 Sun 07:38]--[2025-11-02 Sun 08:10] =>  0:32
 CLOCK: [2025-11-02 Sun 06:10]--[2025-11-02 Sun 06:30] =>  0:20
 :END:
 #+begin_src elisp :tangle yes
-  (defun time-unfolder (step index)
-    (unless (eql index (get-total-periods step))
-      (-let* (((hour minute) (convert-index-into-hour-and-minute-strings step index))
+  (defun ott--time-unfolder (step index)
+    (unless (eql index (ott--get-total-periods step))
+      (-let* (((hour minute) (ott--convert-index-into-hour-and-minute-strings step index))
   	    (time (concat hour ":" minute)))
         (cons time (1+ index)))))
 
 #+end_src
+
+#+RESULTS:
+: time-unfolder
+
 *** DONE create-list-of-time-periods
 CLOSED: [2025-11-02 Sun 20:43]
 :PROPERTIES:
@@ -252,8 +260,8 @@ CLOSED: [2025-11-02 Sun 20:43]
 CLOCK: [2025-11-02 Sun 09:13]--[2025-11-02 Sun 09:23] =>  0:10
 :END:
 #+begin_src elisp :tangle yes
-  (defun create-list-of-time-periods (step)
-    (-unfold (-partial #'time-unfolder step) 0))
+  (defun ott--create-list-of-time-periods (step)
+    (-unfold (-partial #'ott--time-unfolder step) 0))
 #+end_src
 
 *** DONE create-list-of-time-headers
@@ -266,9 +274,11 @@ CLOCK: [2025-11-04 Tue 10:10]--[2025-11-04 Tue 10:11] =>  0:01
 CLOCK: [2025-11-04 Tue 06:49]--[2025-11-04 Tue 07:01] =>  0:12
 :END:
 #+begin_src elisp :tangle yes
-  (defalias 'create-list-of-time-headers (-compose #'seq-map-join-on-dashes #'-partition-in-steps-two #'create-list-of-time-periods))
-
+  (defalias 'ott--create-list-of-time-headers (-compose #'ott--seq-map-join-on-dashes #'ott--partition-in-steps-two #'ott--create-list-of-time-periods))
 #+end_src
+
+#+RESULTS:
+| 00:00-00:04 | 00:04-00:08 | 00:08-00:12 | 00:12-00:16 | 00:16-00:20 | 00:20-00:24 | 00:24-00:28 | 00:28-00:32 | 00:32-00:36 | 00:36-00:40 | 00:40-00:44 | 00:44-00:48 | 00:48-00:52 | 00:52-00:56 | 00:56-01:60 | 01:60-01:64 | 01:64-01:68 | 01:68-01:72 | 01:72-01:76 | 01:76-01:00 | 01:00-01:04 | 01:04-01:08 | 01:08-01:12 | 01:12-01:16 | 01:16-01:20 | 01:20-01:24 | 01:24-01:28 | 01:28-01:32 | 01:32-01:36 | 01:36-02:40 | 02:40-02:44 | 02:44-02:48 | 02:48-02:52 | 02:52-02:56 | 02:56-02:60 | 02:60-02:64 | 02:64-02:68 | 02:68-02:72 | 02:72-02:76 | 02:76-02:00 | 02:00-02:04 | 02:04-02:08 | 02:08-02:12 | 02:12-02:16 | 02:16-03:20 | 03:20-03:24 | 03:24-03:28 | 03:28-03:32 | 03:32-03:36 | 03:36-03:40 | 03:40-03:44 | 03:44-03:48 | 03:48-03:52 | 03:52-03:56 | 03:56-03:60 | 03:60-03:64 | 03:64-03:68 | 03:68-03:72 | 03:72-03:76 | 03:76-04:00 | 04:00-04:04 | 04:04-04:08 | 04:08-04:12 | 04:12-04:16 | 04:16-04:20 | 04:20-04:24 | 04:24-04:28 | 04:28-04:32 | 04:32-04:36 | 04:36-04:40 | 04:40-04:44 | 04:44-04:48 | 04:48-04:52 | 04:52-04:56 | 04:56-05:60 | 05:60-05:64 | 05:64-05:68 | 05:68-05:72 | 05:72-05:76 | 05:76-05:00 | 05:00-05:04 | 05:04-05:08 | 05:08-05:12 | 05:12-05:16 | 05:16-05:20 | 05:20-05:24 | 05:24-05:28 | 05:28-05:32 | 05:32-05:36 | 05:36-06:40 | 06:40-06:44 | 06:44-06:48 | 06:48-06:52 | 06:52-06:56 | 06:56-06:60 | 06:60-06:64 | 06:64-06:68 | 06:68-06:72 | 06:72-06:76 | 06:76-06:00 | 06:00-06:04 | 06:04-06:08 | 06:08-06:12 | 06:12-06:16 | 06:16-07:20 | 07:20-07:24 | 07:24-07:28 | 07:28-07:32 | 07:32-07:36 | 07:36-07:40 | 07:40-07:44 | 07:44-07:48 | 07:48-07:52 | 07:52-07:56 | 07:56-07:60 | 07:60-07:64 | 07:64-07:68 | 07:68-07:72 | 07:72-07:76 | 07:76-08:00 | 08:00-08:04 | 08:04-08:08 | 08:08-08:12 | 08:12-08:16 | 08:16-08:20 | 08:20-08:24 | 08:24-08:28 | 08:28-08:32 | 08:32-08:36 | 08:36-08:40 | 08:40-08:44 | 08:44-08:48 | 08:48-08:52 | 08:52-08:56 | 08:56-09:60 | 09:60-09:64 | 09:64-09:68 | 09:68-09:72 | 09:72-09:76 | 09:76-09:00 | 09:00-09:04 | 09:04-09:08 | 09:08-09:12 | 09:12-09:16 | 09:16-09:20 | 09:20-09:24 | 09:24-09:28 | 09:28-09:32 | 09:32-09:36 | 09:36-10:40 | 10:40-10:44 | 10:44-10:48 | 10:48-10:52 | 10:52-10:56 | 10:56-10:60 | 10:60-10:64 | 10:64-10:68 | 10:68-10:72 | 10:72-10:76 | 10:76-10:00 | 10:00-10:04 | 10:04-10:08 | 10:08-10:12 | 10:12-10:16 | 10:16-11:20 | 11:20-11:24 | 11:24-11:28 | 11:28-11:32 | 11:32-11:36 | 11:36-11:40 | 11:40-11:44 | 11:44-11:48 | 11:48-11:52 | 11:52-11:56 | 11:56-11:60 | 11:60-11:64 | 11:64-11:68 | 11:68-11:72 | 11:72-11:76 | 11:76-12:00 | 12:00-12:04 | 12:04-12:08 | 12:08-12:12 | 12:12-12:16 | 12:16-12:20 | 12:20-12:24 | 12:24-12:28 | 12:28-12:32 | 12:32-12:36 | 12:36-12:40 | 12:40-12:44 | 12:44-12:48 | 12:48-12:52 | 12:52-12:56 | 12:56-13:60 | 13:60-13:64 | 13:64-13:68 | 13:68-13:72 | 13:72-13:76 | 13:76-13:00 | 13:00-13:04 | 13:04-13:08 | 13:08-13:12 | 13:12-13:16 | 13:16-13:20 | 13:20-13:24 | 13:24-13:28 | 13:28-13:32 | 13:32-13:36 | 13:36-14:40 | 14:40-14:44 | 14:44-14:48 | 14:48-14:52 | 14:52-14:56 | 14:56-14:60 | 14:60-14:64 | 14:64-14:68 | 14:68-14:72 | 14:72-14:76 | 14:76-14:00 | 14:00-14:04 | 14:04-14:08 | 14:08-14:12 | 14:12-14:16 | 14:16-15:20 | 15:20-15:24 | 15:24-15:28 | 15:28-15:32 | 15:32-15:36 | 15:36-15:40 | 15:40-15:44 | 15:44-15:48 | 15:48-15:52 | 15:52-15:56 | 15:56-15:60 | 15:60-15:64 | 15:64-15:68 | 15:68-15:72 | 15:72-15:76 | 15:76-16:00 | 16:00-16:04 | 16:04-16:08 | 16:08-16:12 | 16:12-16:16 | 16:16-16:20 | 16:20-16:24 | 16:24-16:28 | 16:28-16:32 | 16:32-16:36 | 16:36-16:40 | 16:40-16:44 | 16:44-16:48 | 16:48-16:52 | 16:52-16:56 | 16:56-17:60 | 17:60-17:64 | 17:64-17:68 | 17:68-17:72 | 17:72-17:76 | 17:76-17:00 | 17:00-17:04 | 17:04-17:08 | 17:08-17:12 | 17:12-17:16 | 17:16-17:20 | 17:20-17:24 | 17:24-17:28 | 17:28-17:32 | 17:32-17:36 | 17:36-18:40 | 18:40-18:44 | 18:44-18:48 | 18:48-18:52 | 18:52-18:56 | 18:56-18:60 | 18:60-18:64 | 18:64-18:68 | 18:68-18:72 | 18:72-18:76 | 18:76-18:00 | 18:00-18:04 | 18:04-18:08 | 18:08-18:12 | 18:12-18:16 | 18:16-19:20 | 19:20-19:24 | 19:24-19:28 | 19:28-19:32 | 19:32-19:36 | 19:36-19:40 | 19:40-19:44 | 19:44-19:48 | 19:48-19:52 | 19:52-19:56 | 19:56-19:60 | 19:60-19:64 | 19:64-19:68 | 19:68-19:72 | 19:72-19:76 | 19:76-20:00 | 20:00-20:04 | 20:04-20:08 | 20:08-20:12 | 20:12-20:16 | 20:16-20:20 | 20:20-20:24 | 20:24-20:28 | 20:28-20:32 | 20:32-20:36 | 20:36-20:40 | 20:40-20:44 | 20:44-20:48 | 20:48-20:52 | 20:52-20:56 | 20:56-21:60 | 21:60-21:64 | 21:64-21:68 | 21:68-21:72 | 21:72-21:76 | 21:76-21:00 | 21:00-21:04 | 21:04-21:08 | 21:08-21:12 | 21:12-21:16 | 21:16-21:20 | 21:20-21:24 | 21:24-21:28 | 21:28-21:32 | 21:32-21:36 | 21:36-22:40 | 22:40-22:44 | 22:44-22:48 | 22:48-22:52 | 22:52-22:56 | 22:56-22:60 | 22:60-22:64 | 22:64-22:68 | 22:68-22:72 | 22:72-22:76 | 22:76-22:00 | 22:00-22:04 | 22:04-22:08 | 22:08-22:12 | 22:12-22:16 | 22:16-23:20 | 23:20-23:24 | 23:24-23:28 | 23:28-23:32 | 23:32-23:36 | 23:36-23:40 | 23:40-23:44 | 23:44-23:48 | 23:48-23:52 | 23:52-23:56 | 23:56-23:60 | 23:60-23:64 | 23:64-23:68 | 23:68-23:72 | 23:72-23:76 | 23:76-00:00 |
 
 ** rows
 *** aliases
@@ -280,24 +290,23 @@ CLOCK: [2025-11-04 Tue 04:11]--[2025-11-04 Tue 04:23] =>  0:12
 CLOCK: [2025-11-03 Mon 02:08]--[2025-11-03 Mon 02:12] =>  0:04
 :END:
 #+begin_src elisp :tangle yes
-  (defun days-in-year (year)
+  (defun ott--days-in-year (year)
     (if (date-leap-year-p year)
         366
       365))
 
 
 
-  (defalias 'identity-or-zero (-orfn #'identity (cl-constantly 0)))
-  (defalias 'seq-replace-nil-with-zero (-partial #'seq-map #'identity-or-zero))
-  (defalias 'org-time-formatter (-partial #'format-time-string "%Y-%m-%d %a"))
-  (defalias '-slice-0-6 (-rpartial #'-slice 0 6))  
-  (defalias 'get-iso-date-for-day-number (-compose #'surround-text-with-brackets #'org-time-formatter #'encode-time #'seq-replace-nil-with-zero #'-slice-0-6 #'date-ordinal-to-time))  
-  (defalias 'last-day-index-for-year (-compose (-partial #'+ 1) #'days-in-year))
+  (defalias 'ott--identity-or-zero (-orfn #'identity (cl-constantly 0)))
+  (defalias 'ott--seq-replace-nil-with-zero (-partial #'seq-map #'ott--identity-or-zero))
+  (defalias 'ott--org-time-formatter (-partial #'format-time-string "%Y-%m-%d %a"))
+  (defalias 'ott--slice-0-6 (-rpartial #'-slice 0 6))  
+  (defalias 'ott--get-iso-date-for-day-number (-compose #'ott--surround-text-with-brackets #'ott--org-time-formatter #'encode-time #'ott--seq-replace-nil-with-zero #'ott--slice-0-6 #'date-ordinal-to-time))  
+  (defalias 'ott--last-day-index-for-year (-compose (-partial #'+ 1) #'ott--days-in-year))
 
 
 
 #+end_src
-
 
 
 *** DONE date-unfolder - dates need to be timestamps
@@ -309,9 +318,9 @@ CLOCK: [2025-11-04 Tue 01:37]--[2025-11-04 Tue 01:42] =>  0:05
 CLOCK: [2025-11-03 Mon 04:40]--[2025-11-03 Mon 05:00] =>  0:20
 :END:
 #+begin_src elisp :tangle yes
-  (defun date-unfolder (year day-number)
-    (unless (eql day-number (last-day-index-for-year year))
-      (cons (get-iso-date-for-day-number year day-number) (1+ day-number))))
+  (defun ott--date-unfolder (year day-number)
+    (unless (equal day-number (ott--last-day-index-for-year year))
+      (cons (ott--get-iso-date-for-day-number year day-number) (1+ day-number))))
 #+end_src
 *** DONE create-list-of-dates-for-year
 CLOSED: [2025-11-04 Tue 04:19]
@@ -323,8 +332,8 @@ CLOCK: [2025-11-04 Tue 04:11]--[2025-11-04 Tue 04:11] =>  0:00
 CLOCK: [2025-11-04 Tue 01:45]--[2025-11-04 Tue 01:49] =>  0:04
 :END:
 #+begin_src elisp :tangle yes
-  (defun create-list-of-dates-for-year (year)
-    (-unfold (-partial #'date-unfolder year) 1))
+  (defun ott--create-list-of-dates-for-year (year)
+    (-unfold (-partial #'ott--date-unfolder year) 1))
 #+end_src
 ** DONE create-time-table-for-year
 CLOSED: [2025-12-04 Thu 06:05]
@@ -336,24 +345,24 @@ CLOCK: [2025-12-04 Thu 05:39]--[2025-12-04 Thu 05:42] =>  0:03
 CLOCK: [2025-11-04 Tue 14:22]--[2025-11-04 Tue 14:31] =>  0:09
 CLOCK: [2025-11-04 Tue 12:59]--[2025-11-04 Tue 13:00] =>  0:01
 :END:
-#+begin_src elisp :tangle yes
+#+begin_src elisp :tangle yes :results raw
 
 
-  (defun create-list-of-empty-rows-with-headers (total-columns row-headers)
+  (defun ott--create-list-of-empty-rows-with-headers (total-columns row-headers)
     (funcall (-compose (-partial #'-zip-with #'cons row-headers) (-partial #'-partition total-columns) (-rpartial #'make-list "") (-rpartial #'* total-columns) #'length) row-headers))
 
 
-  (defun create-time-table-for-year (step year)
-    (-let* (((column-headers total-periods) (funcall (-compose (-juxt #'identity #'seq-length) #'create-list-of-time-headers) step))
+  (defun ott--create-time-table-for-year (step year)
+    (-let* (((column-headers total-periods) (funcall (-compose (-juxt #'identity #'seq-length) #'ott--create-list-of-time-headers) step))
   	  (columns (append (list "") column-headers))
-  	  (rows (funcall (-compose (-partial #'create-list-of-empty-rows-with-headers total-periods) #'create-list-of-dates-for-year) year)))
+  	  (rows (funcall (-compose (-partial #'ott--create-list-of-empty-rows-with-headers total-periods) #'ott--create-list-of-dates-for-year) year)))
       (append (list columns) rows)))
 
 
 #+end_src
-#+RESULTS:
-| 00:00 | 00:05 | 00:10 | 00:15 | 00:20 | 00:25 | 00:30 | 00:35 | 00:40 | 00:45 | 00:50 | 00:55 | 01:00 | 01:05 | 01:10 | 01:15 | 01:20 | 01:25 | 01:30 | 01:35 | 01:40 | 01:45 | 01:50 | 01:55 | 02:00 | 02:05 | 02:10 | 02:15 | 02:20 | 02:25 | 02:30 | 02:35 | 02:40 | 02:45 | 02:50 | 02:55 | 03:00 | 03:05 | 03:10 | 03:15 | 03:20 | 03:25 | 03:30 | 03:35 | 03:40 | 03:45 | 03:50 | 03:55 | 04:00 | 04:05 | 04:10 | 04:15 | 04:20 | 04:25 | 04:30 | 04:35 | 04:40 | 04:45 | 04:50 | 04:55 | 05:00 | 05:05 | 05:10 | 05:15 | 05:20 | 05:25 | 05:30 | 05:35 | 05:40 | 05:45 | 05:50 | 05:55 | 06:00 | 06:05 | 06:10 | 06:15 | 06:20 | 06:25 | 06:30 | 06:35 | 06:40 | 06:45 | 06:50 | 06:55 | 07:00 | 07:05 | 07:10 | 07:15 | 07:20 | 07:25 | 07:30 | 07:35 | 07:40 | 07:45 | 07:50 | 07:55 | 08:00 | 08:05 | 08:10 | 08:15 | 08:20 | 08:25 | 08:30 | 08:35 | 08:40 | 08:45 | 08:50 | 08:55 | 09:00 | 09:05 | 09:10 | 09:15 | 09:20 | 09:25 | 09:30 | 09:35 | 09:40 | 09:45 | 09:50 | 09:55 | 10:00 | 10:05 | 10:10 | 10:15 | 10:20 | 10:25 | 10:30 | 10:35 | 10:40 | 10:45 | 10:50 | 10:55 | 11:00 | 11:05 | 11:10 | 11:15 | 11:20 | 11:25 | 11:30 | 11:35 | 11:40 | 11:45 | 11:50 | 11:55 | 12:00 | 12:05 | 12:10 | 12:15 | 12:20 | 12:25 | 12:30 | 12:35 | 12:40 | 12:45 | 12:50 | 12:55 | 13:00 | 13:05 | 13:10 | 13:15 | 13:20 | 13:25 | 13:30 | 13:35 | 13:40 | 13:45 | 13:50 | 13:55 | 14:00 | 14:05 | 14:10 | 14:15 | 14:20 | 14:25 | 14:30 | 14:35 | 14:40 | 14:45 | 14:50 | 14:55 | 15:00 | 15:05 | 15:10 | 15:15 | 15:20 | 15:25 | 15:30 | 15:35 | 15:40 | 15:45 | 15:50 | 15:55 | 16:00 | 16:05 | 16:10 | 16:15 | 16:20 | 16:25 | 16:30 | 16:35 | 16:40 | 16:45 | 16:50 | 16:55 | 17:00 | 17:05 | 17:10 | 17:15 | 17:20 | 17:25 | 17:30 | 17:35 | 17:40 | 17:45 | 17:50 | 17:55 | 18:00 | 18:05 | 18:10 | 18:15 | 18:20 | 18:25 | 18:30 | 18:35 | 18:40 | 18:45 | 18:50 | 18:55 | 19:00 | 19:05 | 19:10 | 19:15 | 19:20 | 19:25 | 19:30 | 19:35 | 19:40 | 19:45 | 19:50 | 19:55 | 20:00 | 20:05 | 20:10 | 20:15 | 20:20 | 20:25 | 20:30 | 20:35 | 20:40 | 20:45 | 20:50 | 20:55 | 21:00 | 21:05 | 21:10 | 21:15 | 21:20 | 21:25 | 21:30 | 21:35 | 21:40 | 21:45 | 21:50 | 21:55 | 22:00 | 22:05 | 22:10 | 22:15 | 22:20 | 22:25 | 22:30 | 22:35 | 22:40 | 22:45 | 22:50 | 22:55 | 23:00 | 23:05 | 23:10 | 23:15 | 23:20 | 23:25 | 23:30 | 23:35 | 23:40 | 23:45 | 23:50 | 23:55 |
-** DONE create-time-table-file-for-year
+
+
+** DONE ott-create-time-table-file-for-year
 CLOSED: [2025-11-04 Tue 14:57]
 :PROPERTIES:
 :ID:       9c129537-1205-4720-b9c6-07c484255b7e
@@ -365,14 +374,19 @@ CLOCK: [2025-11-04 Tue 13:15]--[2025-11-04 Tue 13:19] =>  0:04
 #+begin_src elisp :tangle yes
 
 
-  (defun create-time-table-file-for-year (file-name step year)
-    (let* ((table (funcall (-compose #'basic-tbl #'-interpose-hlines #'create-time-table-for-year) step year)))
+  (defun ott-create-time-table-file-for-year (file-name step year)    
+    (let* ((table (funcall (-compose #'ott--basic-tbl #'ott--interpose-hlines #'ott--create-time-table-for-year) step year)))
       (with-work-buffer
         (insert table)
         (org-table-align)
         (write-file file-name))))
 
-  (create-time-table-file-for-year "~/org/2026.orgtbl" 4 2026)
+  ;; (progn
+  ;;   (profiler-start 'cpu+mem)
+  ;;   (ott-create-time-table-file-for-year "~/org/2026.orgtbl" 4 2026)
+  ;;   (profiler-stop)
+  ;;   (profiler-report))
+
 #+end_src
 
 #+RESULTS:
@@ -382,7 +396,7 @@ CLOCK: [2025-11-04 Tue 13:15]--[2025-11-04 Tue 13:19] =>  0:04
 CLOCK: [2025-11-04 Tue 15:01]--[2025-11-04 Tue 15:09] =>  0:08
 - State "TODO"       from              [2025-05-07 Wed 20:06]
 :END:
-** DONE ott-incf-mod
+** DONE ott--incf-mod
 CLOSED: [2025-11-10 Mon 09:58]
 :PROPERTIES:
 :ID:       1d0f8e25-3388-497d-a76e-178faf60ba34
@@ -393,7 +407,7 @@ CLOCK: [2025-11-09 Sun 14:51]--[2025-11-09 Sun 15:16] =>  0:25
 #+begin_src elisp :tangle yes
 
 
-  (defmacro ott-incf-mod (place max &optional delta)
+  (defmacro ott--incf-mod (place max &optional delta)
     "Increment generalized variable PLACE by DELTA (default to 1) mod MAX.
 
   The DELTA mod MAX is added to PLACE, and then stored in PLACE.
@@ -405,15 +419,13 @@ CLOCK: [2025-11-09 Sun 14:51]--[2025-11-09 Sun 15:16] =>  0:25
     (gv-letplace (getter setter) place
       (funcall setter `(mod (+ ,getter ,(or delta 1)) ,max))))
 
-  (let ((x 0))
-    (ott-incf-mod x 4))
 
 #+end_src
 
 #+RESULTS:
 : 1
 
-** DONE ott-nth-mod
+** DONE ott--nth-mod
 CLOSED: [2025-11-19 Wed 08:51]
 :PROPERTIES:
 :ID:       7df42c72-53b6-4402-b104-e52aa1ba2750
@@ -424,11 +436,11 @@ CLOCK: [2025-11-18 Tue 13:46]--[2025-11-18 Tue 13:47] =>  0:01
 :END:
 #+begin_src elisp :tangle yes
 
-  (defun ott-nth-mod (n list &optional delta)
+  (defun ott--nth-mod (n list &optional delta)
     (nth (mod (+ n (or delta 1)) (seq-length list)) list))
 
 #+end_src
-** DONE ott-create-cell-options-closure
+** DONE ott--create-cell-options-closure
 CLOSED: [2025-11-19 Wed 18:15]
 :PROPERTIES:
 :ID:       b108a1fd-41c6-4130-b87b-c8563fd7ea81
@@ -447,7 +459,7 @@ CLOCK: [2025-11-09 Sun 13:03]--[2025-11-09 Sun 13:17] =>  0:14
 CLOCK: [2025-11-09 Sun 10:10]--[2025-11-09 Sun 10:16] =>  0:06
 :END:
 #+begin_src elisp :tangle yes
-  (defun ott-create-cell-options-closure (options)
+  (cl-defun ott--create-cell-options-closure (direction-func options)
     (let ((ht (make-hash-table :size (seq-length options) :test #'equal))
   	(options-length (1+ (seq-length options))))
       (seq-do-indexed (lambda (value key)
@@ -456,14 +468,14 @@ CLOCK: [2025-11-09 Sun 10:10]--[2025-11-09 Sun 10:16] =>  0:06
             options)
     (puthash 0 "" ht)
     (puthash "" 0 ht)
-    (lambda (current-val) (let ((current-index (map-elt ht current-val)))
-  			  (ott-incf-mod current-index options-length)
-  			  (gethash current-index ht)))))
+    (lambda (current-val) (let* ((current-index (map-elt ht current-val))
+  			 (next-index (funcall direction-func current-index options-length)))
+  			  (gethash next-index ht)))))
 
 #+end_src
 
 #+RESULTS:
-: ott-create-cell-options-closure
+: ott--create-cell-options-closure
 ** DONE ott-toggle-cell-value
 CLOSED: [2025-11-26 Wed 16:52]
 :PROPERTIES:
@@ -479,24 +491,24 @@ CLOCK: [2025-11-18 Tue 11:11]--[2025-11-18 Tue 11:12] =>  0:01
 CLOCK: [2025-11-18 Tue 08:49]--[2025-11-18 Tue 08:49] =>  0:00
 :END:
 #+begin_src elisp :tangle yes
-  ;;(fmakunbound 'ott-create-cell-value-toggler)
-  (defalias 'org-table-get-field-clean (lambda () (org-trim (substring-no-properties (org-table-get-field)))))
+  (defalias 'ott--org-table-get-field-clean (lambda () (org-trim (substring-no-properties (org-table-get-field)))))
   ;; this was slow, nows its not?
-  (defun ott-create-cell-value-toggler (cycler)
+  (defun ott--create-cell-value-toggler (cycler)
     (lambda ()
       (interactive)
       (org-table-check-inside-data-field nil t) 
-      (let* ((current-val (org-table-get-field-clean))
+      (let* ((current-val (ott--org-table-get-field-clean))
   	   (next-value (funcall cycler current-val)))      
       (org-table-get-field nil next-value))))
 
 #+end_src
 
 #+RESULTS:
-: ott-create-cell-value-toggler
+: ott--create-cell-value-toggler
 
 ** TODO setup cell background change for each cell option
 :LOGBOOK:
+CLOCK: [2026-01-01 Thu 05:25]--[2026-01-01 Thu 05:32] =>  0:07
 CLOCK: [2025-11-22 Sat 06:56]--[2025-11-22 Sat 06:57] =>  0:01
 :END:
 
@@ -517,23 +529,27 @@ CLOCK: [2025-11-10 Mon 12:14]--[2025-11-10 Mon 12:18] =>  0:04
 CLOCK: [2025-11-10 Mon 10:00]--[2025-11-10 Mon 10:10] =>  0:10
 CLOCK: [2025-11-09 Sun 07:32]--[2025-11-09 Sun 07:40] =>  0:08
 :END:
+** defun
+** rest
 #+begin_src elisp :tangle yes
 
-  (defalias 'seq-fmakunbound (-partial #'seq-do #'fmakunbound))
-  (defalias 'seq-makunbound (-partial #'seq-do #'makunbound))
-  ;;(seq-fmakunbound [ott-cell-options-closure ott-toggle-cell-value])
-  ;;(seq-makunbound [org-time-tracker-mode org-time-tracker-mode-map])
-  (defalias 'ott-cell-options-closure (ott-create-cell-options-closure cell-options-keys))
-  (defalias 'ott-toggle-cell-value (ott-create-cell-value-toggler #'ott-cell-options-closure))
+  (defalias 'ott--backwards-cell-options-closure (ott--create-cell-options-closure (lambda (x max) (mod (1- x) max)) ott-cell-options-keys))
+  (defalias 'ott--forward-cell-options-closure (ott--create-cell-options-closure (lambda (x max) (mod (1+ x) max)) ott-cell-options-keys))
+  (defalias 'ott-toggle-backwards-cell-value (ott--create-cell-value-toggler #'ott--backwards-cell-options-closure))
+  (defalias 'ott-toggle-forward-cell-value (ott--create-cell-value-toggler #'ott--forward-cell-options-closure))
 
-  (defun ott-toggle ()
-    (interactive)
-      (print (org-table-get-field nil "slow")))
 
   (defvar-keymap org-time-tracker-mode-map 
-    :doc "Keymap for `org-time-tracker-mode."
-    :repeat t
-    "C-c i" #'ott-toggle-cell-value)
+    :doc "Keymap for `org-time-tracker-mode'."
+    "C-c n" #'ott-toggle-forward-cell-value
+    "C-c k" #'ott-toggle-backwards-cell-value)
+
+  (defvar-keymap org-time-tracker-mode-repeat-map 
+    :doc "Keymap for `org-time-tracker-mode' when repeat-mode is activated."
+    :repeat (:exit (org-table-align))
+    "n" #'ott-toggle-forward-cell-value
+    "k" #'ott-toggle-backwards-cell-value
+    "a" #'org-table-align)
 
 
   ;; hashmap-with-numbers for chosen options + check current cell-value + plus repeat for toggle
@@ -542,84 +558,18 @@ CLOCK: [2025-11-09 Sun 07:32]--[2025-11-09 Sun 07:40] =>  0:08
     :lighter " org-time-tracker-mode")
 
 
+  (setq org-time-tracker-mode-hook nil)
+
 
 #+end_src
-** org-table-goto-line-column
-#+begin_src elisp :tangle yes
-  (defsubst org-table-goto-line-column (line column)
-    (org-table-goto-line line)
-    (org-table-goto-column column))
-#+end_src
-** org-table-autofill
+*** DONE add exit command for repeat-mode that will add call org-table-align 
+CLOSED: [2026-01-10 Sat 00:14]
 :LOGBOOK:
-CLOCK: [2025-11-28 Fri 00:47]--[2025-11-28 Fri 00:58] =>  0:11
-CLOCK: [2025-11-28 Fri 00:43]--[2025-11-28 Fri 00:43] =>  0:00
-CLOCK: [2025-11-27 Thu 03:24]--[2025-11-27 Thu 03:27] =>  0:03
-CLOCK: [2025-11-27 Thu 00:21]--[2025-11-27 Thu 00:33] =>  0:12
-CLOCK: [2025-11-26 Wed 21:51]--[2025-11-26 Wed 22:01] =>  0:10
-CLOCK: [2025-11-26 Wed 16:53]--[2025-11-26 Wed 16:54] =>  0:01
-CLOCK: [2025-11-23 Sun 00:13]--[2025-11-23 Sun 00:30] =>  0:17
-CLOCK: [2025-11-22 Sat 23:42]--[2025-11-23 Sun 00:08] =>  0:26
-CLOCK: [2025-11-22 Sat 21:14]--[2025-11-22 Sat 21:34] =>  0:20
+CLOCK: [2026-01-10 Sat 00:00]--[2026-01-10 Sat 00:14] =>  0:14
 :END:
-#+begin_src elisp :tangle yes
+*** TODO [#C] Set text-properties for cells in visible portion of the screen
+*** TODO [#C] Set text-properties for cells that aren't visible in background
 
-    (defsubst org-no-properties-and-trim (s &optional restricted)
-      "Remove all text properties from string S and then trim the result.
-      When RESTRICTED is non-nil, only remove the properties listed
-       in `org-rm-props'."
-      (if restricted (remove-text-properties 0 (length s) org-rm-props s)
-        (set-text-properties 0 (length s) nil s))
-      (org-trim s))
-
-      (defsubst org-table-goto-char-and-get-column (char)
-        (save-excursion
-          (goto-char char)
-          (org-table-check-inside-data-field nil t)
-          (org-table-current-column)))
-
-      (defsubst org-table-goto-char-and-get-line (char)
-        (save-excursion
-          (goto-char char)
-          (org-table-check-inside-data-field nil t)
-          (org-table-current-line)))
-
-      ;;(fmakunbound 'org-table-get-fill-direction)
-      ;;(fmakunbound 'org-table-autofill)
-      (defsubst org-table-get-fill-direction (beg end)
-        "Helper function for org-table-autofill.
-        Use the BEG and END of selection to determine
-        the direction of fill."
-        (pcase (- beg end) 
-          ((pred zerop) #'(lambda (x y) x))
-          ((pred plusp) #'-)
-          ((pred minusp) #'+)))
-
-  ;; incrementing + prefix arguments are next
-  (defun org-table-autofill (beg end)
-    "Copy the value of the first cell in a selection to all of the other cells.
-  This works in any direction: left, right, down right or up left.
-  With a prefix argument, if the field is a number, a timestamp,
-  or is either prefixed or suffixed with a number, it will be incremented while copying"
-        (interactive (list (mark) (point)))  		
-        (let* ((beg-col (org-table-goto-char-and-get-column beg))
-      	 (end-col (org-table-goto-char-and-get-column end))
-      	 (beg-row (org-table-goto-char-and-get-line beg))
-      	 (end-row (org-table-goto-char-and-get-line end))
-      	 (auto-fill-value (org-table-get beg-row beg-col))
-      	 (columns (1+ (abs (- beg-col end-col))))
-      	 (rows (1+ (abs (- beg-row end-row))))
-      	 (left-or-right? (org-table-get-fill-direction beg-col end-col))
-      	 (up-or-down? (org-table-get-fill-direction beg-row end-row)))
-          (dotimes (row rows)
-            (let ((line (funcall up-or-down? beg-row row)))
-      	(dotimes (column columns)
-      	  (org-table-put line (funcall left-or-right? beg-col column) auto-fill-value))))))
-          
-#+end_src
-
-#+RESULTS:
-: org-table-autofill
 * TODO End
 :PROPERTIES:
 :ID:       7692e202-0bc1-484d-8288-d0fd64356b8c
@@ -635,6 +585,7 @@ CLOCK: [2025-11-22 Sat 21:14]--[2025-11-22 Sat 21:34] =>  0:20
 :END:
 #+begin_src elisp :tangle yes
 ;; Local Variables:
-;; read-symbol-shorthands: (("ott-" . "org-time-tracker-mode"))
+;; read-symbol-shorthands: (("ott-" . "org-time-tracker-mode-"))
 ;; End:
 #+end_src
+ 
