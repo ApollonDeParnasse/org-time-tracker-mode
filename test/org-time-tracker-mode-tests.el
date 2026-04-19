@@ -140,7 +140,7 @@
     (should (equal (funcall test-closure test-current-val) expected-val))))
 
 (generate-ert-deftest-n-times ott--create-cell-value-toggler ()
-  (-let* (((test-list &as test-row-count test-column-count) (generate--times-no-args 2 #'generate--random-nat-number-in-range-10))
+  (-let* (((test-list &as test-row-count test-column-count) (generate--two-random-nat-numbers-in-range-10))
 	  ((test-row-number test-column-number) (seq-map (lambda (val) (generate-random-nat-number-in-range (list 1 val))) test-list))
 	  (test-options (generate-random-list-of-words))
 	  (test-current-value (generate-seq-take-random-value-from-seq test-options))
@@ -153,6 +153,58 @@
        (org-table-goto-column test-column-number)
        (funcall test-ott--toggle-cell-value)
        (member (org-table-get test-row-number test-column-number) test-options)))))
+
+(generate-ert-deftest-n-times ott--propertize-region ()
+  (-let* (((test-row-col &as test-total-rows test-total-columns) (generate--two-random-nat-numbers-in-range-10))	  
+	  ((test-row-number test-column-number) (mapcar #'generate--random-nat-number-between-0-and test-row-col))
+	  (test-colors (generate-list-of-n-colors test-total-rows))
+	  (expected-val (list :background (nth test-row-number test-colors)))
+	  (test-cell-values (mapcar #'number-to-string (-iota (length test-colors) 1)))
+	  (test-options (-zip-with (lambda (i color) (cons i (list :background color))) test-cell-values test-colors))
+	  (actual-cell
+	   (generate-with-buffer-with-org-table (list (-compose #'number-to-string #'car) test-total-rows test-total-columns)
+	     (setq-local cell-options-alist test-options)
+	     (ott--propertize-region (point-min) (point-max))
+	     (org-table-get (1+ test-row-number) (1+ test-column-number)))))
+    (should (equal (get-text-property 0 'face (get-text-property 0 'display actual-cell)) expected-val))))
+
+(defun jit-lock-tests--setup-buffer ()
+  (setq font-lock-defaults '(nil t))
+  (let (noninteractive)
+    (font-lock-mode)))
+
+(generate-ert-deftest-n-times ott--propertize-region-normal-test ()
+  (-let* (((test-row-col &as test-total-rows test-total-columns) (generate--two-random-nat-numbers-in-range-10))	  
+	  ((test-row-number test-column-number) (mapcar #'generate--random-nat-number-between-0-and test-row-col))
+	  (test-colors (generate-list-of-n-colors test-total-rows))
+	  (test-cell-values (mapcar #'number-to-string (-iota (length test-colors) 1)))
+	  (test-options (-zip-with (lambda (i color) (cons i (list :background color))) test-cell-values test-colors))
+	  (actual-cell
+	   (generate-with-buffer-with-org-table (list (-compose #'number-to-string #'car) test-total-rows test-total-columns)
+	     (setq-local cell-options-alist test-options)
+	     (jit-lock-tests--setup-buffer)
+	     (jit-lock-register 'ott--propertize-region)
+	     (jit-lock-fontify-now (point-min) (point-max))
+	     (org-table-get (1+ test-row-number) (1+ test-column-number)))))
+    (should (get-text-property 0 'face (get-text-property 0 'display actual-cell)))))
+
+(generate-ert-deftest-n-times ott--propertize-region-long-rows ()
+  (-let* ((test-total-columns (generate-random-nat-number-in-range (list 25 100)))
+	  (test-total-rows (generate-random-nat-number-in-range (list 1 3)))	  
+	  ((test-row-number test-column-number) (mapcar #'generate--random-nat-number-between-0-and (list test-total-rows test-total-columns)))
+	  (test-colors (generate-list-of-n-colors test-total-rows))
+	  (test-cell-values (mapcar #'number-to-string (-iota (length test-colors) 1)))
+	  (test-options (-zip-with (lambda (i color) (cons i (list :background color))) test-cell-values test-colors))
+	  (actual-cell
+	   (generate-with-buffer-with-org-table (list (-compose #'number-to-string #'car) test-total-rows test-total-columns)
+	     (setq-local cell-options-alist test-options)
+	     (jit-lock-tests--setup-buffer)
+	     (jit-lock-register 'ott--propertize-region)
+	     (jit-lock-fontify-now (point-min) (point-max))
+	     (org-table-get (1+ test-row-number) (1+ test-column-number)))))
+    (should (get-text-property 0 'face (get-text-property 0 'display actual-cell)))))
+
+;;; org-time-tracker-tests.el ends here
 
 ;; Local Variables:
 ;; read-symbol-shorthands: (("ott-" . "org-time-tracker-mode-"))

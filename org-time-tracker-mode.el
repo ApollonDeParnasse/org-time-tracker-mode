@@ -1,4 +1,4 @@
-;;; org-time-tracker-mode.el --- Time tracking with org-tables -*- lexical-binding: t; -*-
+;;; org-time-tracker-mode.el --- Time tracking with org-tables  -*- lexical-binding: t; -*-
 
 ;; Author: Earl Chase
 ;; Maintainer: Earl Chase
@@ -42,25 +42,34 @@
   :group 'org)
 
 (defcustom ott-cell-options-alist '(("le sommeil" . (:background "DimGray"))
-				("la programmation" . (:background "LemonChiffon"))
-				("la musculation" . (:background "RosyBrown"))
-				("le travail" . (:background "DarkOliveGreen"))
-				("l'écriture" . (:background "MediumOrchid"))
-				("la lecture" . (:background "DeepPink"))
-				("le temps d'arrêt" . (:background "LightCoral"))
-				("la méditation" . (:background "PaleTurquoise"))
-				("le temp perdu" . (:background "Cyan"))  				
-				("le temps en famille" . (:background "LightSteelBlue"))
-				("les jeux vidéos" . (:background "LightGoldenrodYellow"))
-				("la socialisation" . (:background "CadetBlue1"))
-				("les tâches" . (:background "MediumPurple1"))
-				("les rendex-vous" . (:background "DeepSkyBlue")))
+				    ("la programmation" . (:background "LemonChiffon"))
+				    ("le temps d'arrêt" . (:background "LightCoral"))
+				    ("l'écriture" . (:background "MediumOrchid"))
+				    ("la méditation" . (:background "PaleTurquoise"))
+				    ("le temps perdu" . (:background "Cyan"))
+				    ("la musculation" . (:background "RosyBrown"))
+				    ("le travail" . (:background "DarkOliveGreen"))
+				    ("la lecture" . (:background "DeepPink"))
+				    ("le temps en famille" . (:background "LightSteelBlue"))
+				    ("les jeux vidéos" . (:background "LightGoldenrodYellow"))
+				    ("la socialisation" . (:background "CadetBlue1"))
+				    ("les tâches" . (:background "MediumPurple1"))
+				    ("la carrière" . (:background "DeepSkyBlue"))
+				    ("les rendez-vous" . (:background "magenta4")))
   "Category-Color pairs"
   :group 'org-time-tracker-mode
   :type 'plist)
 
 (defvar ott-cell-options-keys
-  (map-apply (lambda (x  y) (propertize x 'face y)) ott-cell-options-alist))
+  (map-keys ott-cell-options-alist))
+
+;; turn this into a function
+;; toggle cell using this list
+;; jit-lock-register function that will change 'display properties of cells to match alist:
+;; (put-text-property (match-beginning 0) (match-end 0) 'display (propertize max-key-length ? value-background-color))
+;; new end toggle function for repeat-mode: 
+;; (progn (org-table-put-field-property  'display (propertize max-key-length ? value-background-color)) (org-table-align))
+;; as of now, ott-toggle should not even work due to cell-properties
 
 (defalias 'ott--pad-zeros (-partial #'s-pad-left 2 "0"))
 (defalias 'ott--format-pad (-compose #'ott--pad-zeros (lambda (x) (format "%s" x))))
@@ -72,7 +81,7 @@
 
 (defalias 'ott--2- (-rpartial #'- 2))
 (defalias 'ott--get-periods-per-hour (-partial #'/ 60))
-(defalias 'ott--get-total-periods (-compose #'1+ (-partial #'* 24) #'ott--get-periods-per-hour))  
+(defalias 'ott--get-total-periods (-compose #'1+ (-partial #'* 24) #'ott--get-periods-per-hour))
 (defalias 'ott--convert-index-into-hour-string (lambda (step index) (funcall (-compose (-rpartial #'mod 24) (-partial #'floor index) #'ott--get-periods-per-hour) step)))
 (defalias 'ott--convert-index-into-minute-string (lambda (step index) (* (mod index (ott--get-periods-per-hour step)) step)))
 (defalias 'ott--convert-index-into-hour-and-minute-strings (-compose (-partial #'seq-map #'ott--format-pad) (-juxt #'ott--convert-index-into-hour-string #'ott--convert-index-into-minute-string)))
@@ -83,7 +92,7 @@
 (defun ott--time-unfolder (step index)
   (unless (eql index (ott--get-total-periods step))
     (-let* (((hour minute) (ott--convert-index-into-hour-and-minute-strings step index))
-	    (time (concat hour ":" minute)))
+	  (time (concat hour ":" minute)))
       (cons time (1+ index)))))
 
 (defun ott--create-list-of-time-periods (step)
@@ -101,8 +110,8 @@
 (defalias 'ott--identity-or-zero (-orfn #'identity (cl-constantly 0)))
 (defalias 'ott--seq-replace-nil-with-zero (-partial #'seq-map #'ott--identity-or-zero))
 (defalias 'ott--org-time-formatter (-partial #'format-time-string "%Y-%m-%d %a"))
-(defalias 'ott--slice-0-6 (-rpartial #'-slice 0 6))  
-(defalias 'ott--get-iso-date-for-day-number (-compose #'ott--surround-text-with-brackets #'ott--org-time-formatter #'encode-time #'ott--seq-replace-nil-with-zero #'ott--slice-0-6 #'date-ordinal-to-time))  
+(defalias 'ott--slice-0-6 (-rpartial #'-slice 0 6))
+(defalias 'ott--get-iso-date-for-day-number (-compose #'ott--surround-text-with-brackets #'ott--org-time-formatter #'encode-time #'ott--seq-replace-nil-with-zero #'ott--slice-0-6 #'date-ordinal-to-time))
 (defalias 'ott--last-day-index-for-year (-compose (-partial #'+ 1) #'ott--days-in-year))
 
 (defun ott--date-unfolder (year day-number)
@@ -118,11 +127,11 @@
 
 (defun ott--create-time-table-for-year (step year)
   (-let* (((column-headers total-periods) (funcall (-compose (-juxt #'identity #'seq-length) #'ott--create-list-of-time-headers) step))
-	  (columns (append (list "") column-headers))
-	  (rows (funcall (-compose (-partial #'ott--create-list-of-empty-rows-with-headers total-periods) #'ott--create-list-of-dates-for-year) year)))
+	(columns (append (list "") column-headers))
+	(rows (funcall (-compose (-partial #'ott--create-list-of-empty-rows-with-headers total-periods) #'ott--create-list-of-dates-for-year) year)))
     (append (list columns) rows)))
 
-(defun ott-create-time-table-file-for-year (file-name step year)    
+(defun ott-create-time-table-file-for-year (file-name step year)
   (let* ((table (funcall (-compose #'ott--basic-tbl #'ott--interpose-hlines #'ott--create-time-table-for-year) step year)))
     (with-work-buffer
       (insert table)
@@ -154,24 +163,45 @@ For more information about generalized variables, see Info node
   (let ((ht (make-hash-table :size (seq-length options) :test #'equal))
 	(options-length (1+ (seq-length options))))
     (seq-do-indexed (lambda (value key)
-            (puthash (1+ key) value ht)
-	    (puthash value (1+ key) ht))
-          options)
-  (puthash 0 "" ht)
-  (puthash "" 0 ht)
-  (lambda (current-val) (let* ((current-index (map-elt ht current-val))
-			 (next-index (funcall direction-func current-index options-length)))
-			  (gethash next-index ht)))))
+		      (puthash (1+ key) value ht)
+		      (puthash value (1+ key) ht))
+		    options)
+    (puthash 0 "" ht)
+    (puthash "" 0 ht)
+    (lambda (current-val) (let* ((current-index (map-elt ht current-val))
+				 (next-index (funcall direction-func current-index options-length)))
+			    (gethash next-index ht)))))
 
 (defalias 'ott--org-table-get-field-clean (lambda () (org-trim (substring-no-properties (org-table-get-field)))))
 ;; this was slow, nows its not?
 (defun ott--create-cell-value-toggler (cycler)
   (lambda ()
     (interactive)
-    (org-table-check-inside-data-field nil t) 
+    (org-table-check-inside-data-field nil t)
     (let* ((current-val (ott--org-table-get-field-clean))
-	   (next-value (funcall cycler current-val)))      
+	 (next-value (funcall cycler current-val)))
     (org-table-get-field nil next-value))))
+
+(defsubst ott--set-cell-display-property (options cell-start region-end)
+  (let* ((cell-end (save-excursion (re-search-forward "|" region-end 't)))	       
+	 (raw-string (if cell-end (buffer-substring-no-properties (1+ cell-start) (1- cell-end))))
+	 (clean-string (if raw-string (string-trim raw-string)))
+	 (display-property (map-elt options clean-string)))
+    (cond
+     ((not cell-end) '())
+     ((string-prefix-p "-" raw-string) '())
+     ((length= clean-string 0))
+     (display-property (put-text-property (1+ cell-start) (1- cell-end) 'display (propertize raw-string 'face display-property))))))
+
+(defun ott--propertize-region (beg end)
+  (progn
+    (goto-char beg)
+    (ott--set-cell-display-property cell-options-alist beg end))
+  (let* ((matches (count-matches "|" beg end)))
+    (dotimes (_ (- matches 1))
+      (re-search-forward "|" end 'nil)
+      (ott--set-cell-display-property cell-options-alist (match-beginning 0) end))
+    (cons beg end)))
 
 (defalias 'ott--backwards-cell-options-closure (ott--create-cell-options-closure (lambda (x max) (mod (1- x) max)) ott-cell-options-keys))
 (defalias 'ott--forward-cell-options-closure (ott--create-cell-options-closure (lambda (x max) (mod (1+ x) max)) ott-cell-options-keys))
@@ -179,12 +209,13 @@ For more information about generalized variables, see Info node
 (defalias 'ott-toggle-forward-cell-value (ott--create-cell-value-toggler #'ott--forward-cell-options-closure))
 
 
-(defvar-keymap org-time-tracker-mode-map 
+(defvar-keymap org-time-tracker-mode-map
   :doc "Keymap for `org-time-tracker-mode'."
   "C-c n" #'ott-toggle-forward-cell-value
   "C-c k" #'ott-toggle-backwards-cell-value)
 
-(defvar-keymap org-time-tracker-mode-repeat-map 
+;; consider using undo-auto-amalgamate for the repeat map
+(defvar-keymap org-time-tracker-mode-repeat-map
   :doc "Keymap for `org-time-tracker-mode' when repeat-mode is activated."
   :repeat (:exit (org-table-align))
   "n" #'ott-toggle-forward-cell-value
@@ -192,13 +223,16 @@ For more information about generalized variables, see Info node
   "a" #'org-table-align)
 
 
-;; hashmap-with-numbers for chosen options + check current cell-value + plus repeat for toggle
+(defun org-time-tracker-mode-defun-base (ott-cell-options)
+  "Setup org-time-tracker-mode."
+  (setq-local cell-options-alist ott-cell-options))
+
+;;;###autoload
 (define-minor-mode org-time-tracker-mode
-  "Time tracking mode"
-  :lighter " org-time-tracker-mode")
-
-
-(setq org-time-tracker-mode-hook nil)
+  "Time tracking mode for `org-mode'."
+  :interactive 't
+  :lighter " org-time-tracker-mode"
+  (org-time-tracker-mode-defun-base ott-cell-options-alist))
 
 (provide 'org-time-tracker-mode)
 ;;; org-time-tracker-mode.el ends here

@@ -14,5 +14,5 @@ Makefile.*
 
 /.eldev
 Eldev-local
-
+*.org
 test/quickcheck-copy.el
