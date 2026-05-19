@@ -56,20 +56,12 @@
 				    ("les tâches" . (:background "MediumPurple1"))
 				    ("la carrière" . (:background "DeepSkyBlue"))
 				    ("les rendez-vous" . (:background "magenta4")))
-  "Category-Color pairs"
+  "Category-Color pairs."
   :group 'org-time-tracker-mode
   :type 'plist)
 
 (defvar ott-cell-options-keys
   (map-keys ott-cell-options-alist))
-
-;; turn this into a function
-;; toggle cell using this list
-;; jit-lock-register function that will change 'display properties of cells to match alist:
-;; (put-text-property (match-beginning 0) (match-end 0) 'display (propertize max-key-length ? value-background-color))
-;; new end toggle function for repeat-mode: 
-;; (progn (org-table-put-field-property  'display (propertize max-key-length ? value-background-color)) (org-table-align))
-;; as of now, ott-toggle should not even work due to cell-properties
 
 (defalias 'ott--pad-zeros (-partial #'s-pad-left 2 "0"))
 (defalias 'ott--format-pad (-compose #'ott--pad-zeros (lambda (x) (format "%s" x))))
@@ -138,12 +130,6 @@
       (org-table-align)
       (write-file file-name))))
 
-;; (progn
-;;   (profiler-start 'cpu+mem)
-;;   (ott-create-time-table-file-for-year "~/org/2026.orgtbl" 4 2026)
-;;   (profiler-stop)
-;;   (profiler-report))
-
 (defmacro ott--incf-mod (place max &optional delta)
   "Increment generalized variable PLACE by DELTA (default to 1) mod MAX.
 
@@ -173,7 +159,6 @@ For more information about generalized variables, see Info node
 			    (gethash next-index ht)))))
 
 (defalias 'ott--org-table-get-field-clean (lambda () (org-trim (substring-no-properties (org-table-get-field)))))
-;; this was slow, nows its not?
 (defun ott--create-cell-value-toggler (cycler)
   (lambda ()
     (interactive)
@@ -181,27 +166,6 @@ For more information about generalized variables, see Info node
     (let* ((current-val (ott--org-table-get-field-clean))
 	 (next-value (funcall cycler current-val)))
     (org-table-get-field nil next-value))))
-
-(defsubst ott--set-cell-display-property (options cell-start region-end)
-  (let* ((cell-end (save-excursion (re-search-forward "|" region-end 't)))	       
-	 (raw-string (if cell-end (buffer-substring-no-properties (1+ cell-start) (1- cell-end))))
-	 (clean-string (if raw-string (string-trim raw-string)))
-	 (display-property (map-elt options clean-string)))
-    (cond
-     ((not cell-end) '())
-     ((string-prefix-p "-" raw-string) '())
-     ((length= clean-string 0))
-     (display-property (put-text-property (1+ cell-start) (1- cell-end) 'display (propertize raw-string 'face display-property))))))
-
-(defun ott--propertize-region (beg end)
-  (progn
-    (goto-char beg)
-    (ott--set-cell-display-property cell-options-alist beg end))
-  (let* ((matches (count-matches "|" beg end)))
-    (dotimes (_ (- matches 1))
-      (re-search-forward "|" end 'nil)
-      (ott--set-cell-display-property cell-options-alist (match-beginning 0) end))
-    (cons beg end)))
 
 (defalias 'ott--backwards-cell-options-closure (ott--create-cell-options-closure (lambda (x max) (mod (1- x) max)) ott-cell-options-keys))
 (defalias 'ott--forward-cell-options-closure (ott--create-cell-options-closure (lambda (x max) (mod (1+ x) max)) ott-cell-options-keys))
